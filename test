@@ -1,0 +1,53 @@
+# Image Docker Builer using groovy script 
+
+pipeline{
+  agent{
+  label "CI"
+  }
+  stages{
+    stage('Code checkout'){ 
+    steps{
+      script{
+        git branch: 'main',
+        url: 'https://github.com/prateekkumawat/jenkinsdocker.git'
+      }
+    }
+    }
+    stage('Docker Image Build'){
+    steps{ 
+      script {
+          def customImage = docker.build("my-image:${env.BUILD_ID}")
+      }
+    }
+    }  
+  }
+}    
+
+
+# Image with push 
+pipeline{
+  agent{
+  label "CI"
+  }
+  stages{
+    stage('Code checkout'){ 
+    steps{
+      script{
+        git branch: 'main',
+        url: 'https://github.com/prateekkumawat/jenkinsdocker.git'
+      }
+    }
+    }
+    
+    stage('Docker image push to Registry'){
+    steps{
+        script{
+            withDockerRegistry(credentialsId: 'dockerhub', url: 'https://registry.hub.docker.com'){
+                def customImage = docker.build("prateekkumawat/my-image:${env.BUILD_ID}")
+                customImage.push()
+            }
+        }
+    }
+    }
+  }
+}    
